@@ -1,0 +1,23 @@
+{
+  "name": "mapty",
+  "version": "1.0.0",
+  "description": "locate and track your workouts",
+  "dependencies": {},
+  "devDependencies": {
+    "parcel": "^2.5.0"
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html --dist-dir ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmlongdev/mapty.git"
+  },
+  "author": "Max Long",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jmlongdev/mapty/issues"
+  },
+  "homepage": "https://github.com/jmlongdev/mapty#readme"
+}
