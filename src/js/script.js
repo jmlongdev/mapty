@@ -9,10 +9,10 @@
 4. Ability to sort workouts by a certain field (ex. distance)
 5. Re-Build Running and Cycling objects coming from Local Storage
 6. Create more realistic error and confirmation messages
+
 Hard Challenges - using leaflet docs
 7. Ability to position the map to show all workouts[very hard]
 8. Ability to draw lines and shapes instead of just points [very hard]
-
 9. Geocode Location from coodrinates (gives back real location)[only after async JS section]
 10. Display weather data for workout time and place [only after async JS section]
 */
@@ -42,7 +42,6 @@ class Workout {
 }
 
 //child classes of Workout
-
 class Running extends Workout {
   type = 'running';
 
@@ -76,9 +75,24 @@ class Cycling extends Workout {
   }
 }
 
-// const run = new Running([39, -12], 5.2, 24, 170);
+class Swimming extends Workout {
+  type = 'swimming';
+  constructor(coords, distance, duration, laps) {
+    super(coords, distance, duration);
+    this.laps = laps;
+    this.calcLapPace();
+    this._setDescription();
+  }
+
+  calcLapPace() {
+    this.pace = (this.distance / 50 / this.duration) * 60;
+  }
+}
+
+const run = new Running([39, -12], 5.2, 24, 170);
+const swim = new Swimming([39, -12], 5.2, 24, 170);
 // const cycling1 = new Cycling([39, -12], 27, 95, 523);
-// console.log(run, cycling1);
+console.log(run, swim);
 
 //////////////////////////////////
 //APPLICATION ARCHITECTURE
@@ -90,6 +104,7 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
+const inputLap = document.querySelector('.form__input--lap');
 
 class App {
   #map;
@@ -105,7 +120,7 @@ class App {
     this._getLocalStorage();
     // Attach event handlers
     form.addEventListener('submit', this._newWorkout.bind(this)); // the keyword points to the App object and not the form
-    inputType.addEventListener('change', this._toggleElevationField);
+    inputType.addEventListener('change', this._toggleTypeField);
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
@@ -149,22 +164,37 @@ class App {
       inputDuration.value =
       inputCadence.value =
       inputElevation.value =
+      inputLap.value =
         '';
     form.style.display = 'none';
     form.classList.add('hidden');
     setTimeout(() => (form.style.display = 'grid'), 1000);
   }
 
-  _toggleElevationField() {
-    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+  _toggleTypeField() {
+    if (inputType.value === 'running') {
+      inputCadence.closest('.form__row').classList.remove('form__row--hidden');
+      inputElevation.closest('.form__row').classList.add('form__row--hidden');
+      inputLap.closest('.form__row').classList.add('form__row--hidden');
+    } else if (inputType.value === 'swimming') {
+      inputLap.closest('.form__row').classList.remove('form__row--hidden');
+      inputCadence.closest('.form__row').classList.add('form__row--hidden');
+      inputElevation.closest('.form__row').classList.add('form__row--hidden');
+    } else if (inputType.value === 'cycling') {
+      inputElevation
+        .closest('.form__row')
+        .classList.remove('form__row--hidden');
+      inputCadence.closest('.form__row').classList.add('form__row--hidden');
+      inputLap.closest('.form__row').classList.add('form__row--hidden');
+    }
+    // inputArray.map(input => console.log(input));
   }
 
   _newWorkout(e) {
     //helper functions for checking to see if inputs are numbers and positive
     const validInputs = (...inputs) =>
       inputs.every(inp => Number.isFinite(inp));
-    const allPositive = (...inputs) => inputs.every(inp => inp > 0);
+    const allPositive = (...inputs) => inputs.every(inp => inp >= 0);
     e.preventDefault();
 
     // Get data from form
@@ -178,9 +208,6 @@ class App {
       const cadence = +inputCadence.value;
       // Check if data is valid
       if (
-        // !Number.isFinite(distance) ||
-        // !Number.isFinite(duration) ||
-        // !Number.isFinite(cadence)
         !validInputs(distance, duration, cadence) ||
         !allPositive(distance, duration, cadence)
       )
@@ -199,12 +226,22 @@ class App {
         return alert('Inputs have to be positive numbers');
       workout = new Cycling([lat, lng], distance, duration, elevation);
     }
+
+    if (type === 'swimming') {
+      const laps = +inputLap.value;
+      if (
+        !validInputs(distance, duration, laps) ||
+        !allPositive(distance, duration, laps)
+      )
+        return alert('Inputs have to be positive numbers');
+      workout = new Swimming([lat, lng], distance, duration, laps);
+    }
+
     //add new object to the workout array
     this.#workouts.push(workout);
-
     // Render workout on map as marker
     this._renderWorkoutMarker(workout);
-    // render wokout on list
+    // render workout on list
     this._renderWorkout(workout);
     // Hide form + clear input fields
     this._hideForm();
@@ -212,6 +249,7 @@ class App {
     // Set local storage to all Workouts array
     this._setLocalStorage();
   }
+
   _renderWorkoutMarker(workout) {
     L.marker(workout.coords)
       .addTo(this.#map)
@@ -225,7 +263,15 @@ class App {
         })
       )
       .setPopupContent(
-        `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'}${workout.description}`
+        `${
+          workout.type === 'running'
+            ? '🏃‍♂️'
+            : workout.type === 'cycling'
+            ? '🚴‍♂️'
+            : workout.type === 'swimming'
+            ? '🏊🏻‍♂️'
+            : ''
+        }${workout.description}`
       )
       .openPopup();
   }
@@ -236,10 +282,18 @@ class App {
           <h2 class="workout__title">${workout.description}</h2>
           <div class="workout__details">'
             <span class="workout__icon">${
-              workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'
+              workout.type === 'running'
+                ? '🏃‍♂️'
+                : workout.type === 'cycling'
+                ? '🚴‍♂️'
+                : workout.type === 'swimming'
+                ? '🏊🏻‍♂️'
+                : ''
             }</span>
             <span class="workout__value">${workout.distance}</span>
-            <span class="workout__unit">km</span>
+            <span class="workout__unit">${
+              workout.type === 'swimming' ? 'm' : 'km'
+            }</span>
           </div>
           <div class="workout__details">
             <span class="workout__icon">⏱</span>
@@ -274,7 +328,19 @@ class App {
       </div>
     </li>
       `;
-
+    if (workout.type === 'swimming')
+      html += `<div class="workout__details">
+      <span class="workout__icon">🔁</span>
+      <span class="workout__value">${workout.laps}</span>
+      <span class="workout__unit">laps</span>
+    </div>
+    <div class="workout__details">
+      <span class="workout__icon">🏊🏻‍♀️</span>
+      <span class="workout__value">${workout.pace}</span>
+      <span class="workout__unit">m/min</span>
+    </div>
+  </li>
+  `;
     form.insertAdjacentHTML('afterend', html);
   }
 
@@ -295,7 +361,7 @@ class App {
     });
 
     // using the public inteface
-    // workout.click();
+    workout.click();
   }
 
   _setLocalStorage() {
@@ -318,82 +384,3 @@ class App {
 }
 
 const app = new App();
-
-//
-//
-//
-//
-//===========================================================================//
-// ===== How to Plan a Web Project ===== // VIDEO 231
-// ===== ** ONE OF THE MOST IMPORTANT SKILLS TO LEARN** ===== //
-
-// PLANNING
-// 1) USER STORIES:
-//      Description of the application's functionality from the user's PERPECTIVE.   All user stories put together describe the entire application
-
-// 2) FEATURES:
-//
-
-// 3) FLOWCHART: WHAT we will build
-//
-
-// 4) ARCHITECTURE:HOW we will build it
-//
-
-// AFTER PLANNING IS COMPLETE THE DEVELOPMENT STEP BEGINS: Implementation of our plan usng code.
-
-/*                          USER STORIES
-User story: Description of the application's functionality from the user's perspective 
-
-Common Format: As a [type of user], I want [an action] so that [a benefit]
-                        who                     what                why
-
-a.  As a [user], I want [to log my running with location, distance, time, pace and   
-    steps/minute], so that [I can keep a log of all my running]
-
-b.  As a [user], I want [to log my cycling workouts with location, distance, time, 
-    speed, and elevation], so that [I can keep a log of all my cycling]
-
-c.  As a [user], I want [to see all my workouts at a glance], so [I can easily track 
-    my progress over time] 
-
-d.  As a [user], I want [to also see my workouts on a map], so [I can easily check 
-    where I workout the most]
-
-e.  As a [user], I want [see all my worhouts when I leave the app and come back
-     later], so that I [can keep usng the app over time]
-
- */
-
-/*                             FEATURES
-
-a.  Map where user clicks to add new workout (best way to get location coordinates)
-    Geolocation to display map location (more user friendly)
-    Form to input distance, time, pacem and cadence
-
-b.  Form to input distance, time, speed, elevation gain
-
-c.  Display all workouts in a list
-
-d.  Display all workouts on the map
-
-e.  Store workout data in teh browser using local storae API 
-    On page load, read the saved data from local storage and display
-*/
-
-/*                             FLOW CHART
-
-look at included chart.
-
-*/
-/*                          ARCHITECTURE 
-
-
-
-
-
-*/
-
-/*                        Project Architecture 
-
-*/
