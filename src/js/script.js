@@ -34,7 +34,8 @@ class Workout {
 
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
-    } ${this.date.getDate()}`;
+    } ${this.date.getDate()}
+    `;
   }
   click() {
     this.clicks++;
@@ -89,10 +90,10 @@ class Swimming extends Workout {
   }
 }
 
-const run = new Running([39, -12], 5.2, 24, 170);
-const swim = new Swimming([39, -12], 5.2, 24, 170);
+// const run = new Running([39, -12], 5.2, 24, 170);
+// const swim = new Swimming([39, -12], 5.2, 24, 170);
 // const cycling1 = new Cycling([39, -12], 27, 95, 523);
-console.log(run, swim);
+// console.log(run, swim);
 
 //////////////////////////////////
 //APPLICATION ARCHITECTURE
@@ -276,30 +277,35 @@ class App {
       .openPopup();
   }
 
+  test() {
+    console.log('test');
+  }
   _renderWorkout(workout) {
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
-          <h2 class="workout__title">${workout.description}</h2>
-          <div class="workout__details">'
-            <span class="workout__icon">${
-              workout.type === 'running'
-                ? '🏃‍♂️'
-                : workout.type === 'cycling'
-                ? '🚴‍♂️'
-                : workout.type === 'swimming'
-                ? '🏊🏻‍♂️'
-                : ''
-            }</span>
-            <span class="workout__value">${workout.distance}</span>
-            <span class="workout__unit">${
-              workout.type === 'swimming' ? 'm' : 'km'
-            }</span>
-          </div>
-          <div class="workout__details">
-            <span class="workout__icon">⏱</span>
-            <span class="workout__value">${workout.duration}</span>
-            <span class="workout__unit">min</span>
-          </div>`;
+    
+    <h2 class="workout__title">${workout.description}
+    <span class="icon"><i class="fas fa-trash"></i></span></h2>
+    <div class="workout__details">
+    <span class="workout__icon">${
+      workout.type === 'running'
+        ? '🏃‍♂️'
+        : workout.type === 'cycling'
+        ? '🚴‍♂️'
+        : workout.type === 'swimming'
+        ? '🏊🏻‍♂️'
+        : ''
+    }</span>
+    <span class="workout__value">${workout.distance}</span>
+    <span class="workout__unit">${
+      workout.type === 'swimming' ? 'm' : 'km'
+    }</span>
+    </div>
+    <div class="workout__details">
+    <span class="workout__icon">⏱</span>
+    <span class="workout__value">${workout.duration}</span>
+    <span class="workout__unit">min</span>
+    </div>`;
     if (workout.type === 'running')
       html += `
       <div class="workout__details">
@@ -361,7 +367,7 @@ class App {
     });
 
     // using the public inteface
-    workout.click();
+    // workout.click();
   }
 
   _setLocalStorage() {
@@ -377,6 +383,16 @@ class App {
       this._renderWorkout(workout);
     });
   }
+
+  _deleteWorkout(id) {
+    // const getStorage = localStorage.getItem('workouts');
+    // data = JSON.parse(getStorage);
+    // data.splice(index, 1);
+    // setLocalStorage();
+    // this._renderWorkout();
+    console.log('it works');
+  }
+
   reset() {
     localStorage.removeItem('workouts');
     location.reload();
