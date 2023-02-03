@@ -90,11 +90,6 @@ class Swimming extends Workout {
   }
 }
 
-// const run = new Running([39, -12], 5.2, 24, 170);
-// const swim = new Swimming([39, -12], 5.2, 24, 170);
-// const cycling1 = new Cycling([39, -12], 27, 95, 523);
-// console.log(run, swim);
-
 //////////////////////////////////
 //APPLICATION ARCHITECTURE
 
@@ -324,7 +319,7 @@ class App {
       html += `
       <div class="workout__details">
         <span class="workout__icon">⚡️</span>
-        <span class="workout__value">${workout.speed}</span>
+        <span class="workout__value">${workout.speed.toFixed(1)}</span>
         <span class="workout__unit">km/h</span>
       </div>
       <div class="workout__details">
