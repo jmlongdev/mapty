@@ -1,8 +1,8 @@
 'use strict';
 // https://leafletjs.com/reference.html
 
-/* 10 ADDITIONAL FEATURE IDEAS: CHALLENGE
- Medium Challenges
+/* 10 ADDITIONAL FEATURE IDEAS: 
+
 1. Ability to edit a workout
 2. Ability to delete a workout
 3. Ability to delete all a workouts
@@ -10,7 +10,7 @@
 5. Re-Build Running and Cycling objects coming from Local Storage
 6. Create more realistic error and confirmation messages
 
-Hard Challenges - using leaflet docs
+   using leaflet docs
 7. Ability to position the map to show all workouts[very hard]
 8. Ability to draw lines and shapes instead of just points [very hard]
 9. Geocode Location from coodrinates (gives back real location)[only after async JS section]
@@ -134,7 +134,7 @@ class App {
         }
       );
   }
-
+  //Happens First, gets the geolocation and renders the map
   _loadMap(position) {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
